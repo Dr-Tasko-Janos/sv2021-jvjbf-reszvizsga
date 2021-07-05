@@ -2,7 +2,9 @@ package cinema;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -34,6 +36,9 @@ public class MovieService {
 
 
     public MovieDTO createMovie(CreateMovieCommand command) {
+        if (command.getTitle().isEmpty() || command.getTitle().isBlank() || command.getTitle() == null) {
+            throw new IllegalArgumentException("Title for movie is required");
+        }
         Movie movie = new Movie(idGenerator.incrementAndGet(), command.getTitle(), command.getDate(), command.getMaxReservation());
         movies.add(movie);
         return modelMapper.map(movie, MovieDTO.class);
@@ -54,12 +59,12 @@ public class MovieService {
     public MovieDTO findMovieById(long id) {
         return modelMapper.map(movies.stream().filter(e -> e.getId() == id)
                 .findAny()
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found " + id)), MovieDTO.class);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Movie not found " + id)), MovieDTO.class);
     }
 
     public MovieDTO bookTicket(long id, CreateReservationCommand command) {
         Movie movie = movies.stream()
-                .filter(e ->e.getId() == id)
+                .filter(e -> e.getId() == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Movie not found: " + id));
         movie.reservationChecker(command.getSpaces());
@@ -67,10 +72,9 @@ public class MovieService {
     }
 
 
-
     public MovieDTO updateDate(long id, UpdateDateCommand command) {
         Movie movie = movies.stream()
-                .filter(e ->e.getId() == id)
+                .filter(e -> e.getId() == id)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Movie not found: " + id));
         movie.setDate(command.getNewDate());

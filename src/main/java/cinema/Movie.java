@@ -3,6 +3,8 @@ package cinema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -44,7 +46,7 @@ public class Movie {
 
     public void reservationChecker(int reservationNumber) {
         if (reservationNumber >freeSpaces) {
-            throw new IllegalStateException(String.format("Available free space is: %d vs. requested reservation number is: %d", freeSpaces, reservationNumber));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Available free space is: %d vs. requested reservation number is: %d", freeSpaces, reservationNumber));
         } else {
             this.freeSpaces = freeSpaces - reservationNumber;
         }
